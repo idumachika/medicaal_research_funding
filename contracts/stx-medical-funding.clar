@@ -47,7 +47,7 @@
             (map-set proposals {id: id} {recipient: recipient, amount: amount, votes: 0})
             (var-set proposal-count (+ id 1))
             (ok id))))
-            
+
 ;; Vote for a proposal (only token holders)
 (define-public (vote (proposal-id uint) (vote-weight uint))
     (let ((sender-balance (unwrap! (map-get? balances {owner: tx-sender}) {balance: 0})))
@@ -55,4 +55,19 @@
             (asserts! (>= sender-balance vote-weight) (err "Not enough tokens to vote"))
             (map-set proposals {id: proposal-id} {recipient: (unwrap! (map-get? proposals {id: proposal-id}) {recipient: 'SP000000000000000000002Q6VF78}), amount: (unwrap! (map-get? proposals {id: proposal-id}) {amount: 0}), votes: (+ (unwrap! (map-get? proposals {id: proposal-id}) {votes: 0}) vote-weight)})
             (ok vote-weight))))
+;; Allocate funds (only admin)
+(define-public (allocate-funds (proposal-id uint))
+    (let ((proposal (map-get? proposals {id: proposal-id})))
+        (match proposal 
+            proposal-data
+            (let ((recipient (get recipient proposal-data))
+                  (amount (get amount proposal-data))
+                  (research-balance (unwrap! (map-get? balances {owner: (var-get research-fund)}) {balance: 0})))
+                (begin
+                    (asserts! (is-eq tx-sender (var-get admin)) (err "Only admin can allocate"))
+                    (asserts! (>= research-balance amount) (err "Insufficient funds in research fund"))
+                    (map-set balances {owner: (var-get research-fund)} {balance: (- research-balance amount)})
+                    (map-set balances {owner: recipient} {balance: (+ (unwrap! (map-get? balances {owner: recipient}) {balance: 0}) amount)})
+                    (ok amount)))
+            (err "Proposal not found"))))
 
