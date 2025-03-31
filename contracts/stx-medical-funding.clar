@@ -39,7 +39,7 @@
             (map-set balances {owner: tx-sender} {balance: (- sender-balance amount)})
             (map-set balances {owner: (var-get research-fund)} {balance: (+ (unwrap! (map-get? balances {owner: (var-get research-fund)}) {balance: 0}) amount)})
             (ok amount))))
-            
+
 ;; Submit a funding proposal
 (define-public (submit-proposal (recipient principal) (amount uint))
     (let ((id (var-get proposal-count)))
@@ -47,4 +47,12 @@
             (map-set proposals {id: id} {recipient: recipient, amount: amount, votes: 0})
             (var-set proposal-count (+ id 1))
             (ok id))))
+            
+;; Vote for a proposal (only token holders)
+(define-public (vote (proposal-id uint) (vote-weight uint))
+    (let ((sender-balance (unwrap! (map-get? balances {owner: tx-sender}) {balance: 0})))
+        (begin
+            (asserts! (>= sender-balance vote-weight) (err "Not enough tokens to vote"))
+            (map-set proposals {id: proposal-id} {recipient: (unwrap! (map-get? proposals {id: proposal-id}) {recipient: 'SP000000000000000000002Q6VF78}), amount: (unwrap! (map-get? proposals {id: proposal-id}) {amount: 0}), votes: (+ (unwrap! (map-get? proposals {id: proposal-id}) {votes: 0}) vote-weight)})
+            (ok vote-weight))))
 
