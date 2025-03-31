@@ -31,3 +31,12 @@
             (map-set balances {owner: to} {balance: (+ (unwrap! (map-get? balances {owner: to}) {balance: 0}) amount)})
             (ok amount))))
 
+;; Donate to the research fund
+(define-public (donate (amount uint))
+    (let ((sender-balance (unwrap! (map-get? balances {owner: tx-sender}) {balance: 0})))
+        (begin
+            (asserts! (>= sender-balance amount) (err "Insufficient balance"))
+            (map-set balances {owner: tx-sender} {balance: (- sender-balance amount)})
+            (map-set balances {owner: (var-get research-fund)} {balance: (+ (unwrap! (map-get? balances {owner: (var-get research-fund)}) {balance: 0}) amount)})
+            (ok amount))))
+
