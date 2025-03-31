@@ -70,4 +70,11 @@
                     (map-set balances {owner: recipient} {balance: (+ (unwrap! (map-get? balances {owner: recipient}) {balance: 0}) amount)})
                     (ok amount)))
             (err "Proposal not found"))))
+;; Get balance
+(define-read-only (get-balance (who principal))
+    (unwrap! (map-get? balances {owner: who}) {balance: 0}))
+
+;; Get proposal details
+(define-read-only (get-proposal (proposal-id uint))
+    (map-get? proposals {id: proposal-id}))
 
