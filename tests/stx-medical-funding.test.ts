@@ -1,21 +1,45 @@
+// Vitest Test Suite
+import { describe, test, expect } from 'vitest';
 
-import { describe, expect, it } from "vitest";
+describe("Decentralized Medical Research Funding", () => {
+    test("Admin can allocate funds", () => {
+        const admin = "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM";
+        const researcher = "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5";
 
-const accounts = simnet.getAccounts();
-const address1 = accounts.get("wallet_1")!;
+        let balances = {
+            [admin]: 1000,
+            [researcher]: 0,
+        };
+        let proposals = {
+            0: { researcher, amount: 500, votes: 100 },
+        };
 
-/*
-  The test below is an example. To learn more, read the testing documentation here:
-  https://docs.hiro.so/stacks/clarinet-js-sdk
-*/
+        const donate = (amount) => {
+            if (balances[admin] >= amount) {
+                balances[admin] -= amount;
+                balances[researcher] += amount;
+                return amount;
+            }
+            throw new Error("Insufficient balance");
+        };
 
-describe("example tests", () => {
-  it("ensures simnet is well initialised", () => {
-    expect(simnet.blockHeight).toBeDefined();
-  });
+        // Simulating fund allocation by admin
+        const allocateFunds = (id) => {
+            const proposal = proposals[id];
+            if (!proposal) throw new Error("Proposal not found");
+            if (balances[researcher] < proposal.amount) throw new Error("Insufficient funds");
 
-  // it("shows an example", () => {
-  //   const { result } = simnet.callReadOnlyFn("counter", "get-counter", [], address1);
-  //   expect(result).toBeUint(0);
-  // });
+            balances[researcher] -= proposal.amount;
+            balances[proposal.researcher] += proposal.amount;
+            return proposal.amount;
+        };
+
+        // Execute functions
+        donate(1000);
+        const allocated = allocateFunds(0);
+
+        // Assertions
+        expect(allocated).toBe(500);
+        expect(balances[researcher]).toBe(500);
+    });
 });
