@@ -39,4 +39,12 @@
             (map-set balances {owner: tx-sender} {balance: (- sender-balance amount)})
             (map-set balances {owner: (var-get research-fund)} {balance: (+ (unwrap! (map-get? balances {owner: (var-get research-fund)}) {balance: 0}) amount)})
             (ok amount))))
+            
+;; Submit a funding proposal
+(define-public (submit-proposal (recipient principal) (amount uint))
+    (let ((id (var-get proposal-count)))
+        (begin
+            (map-set proposals {id: id} {recipient: recipient, amount: amount, votes: 0})
+            (var-set proposal-count (+ id 1))
+            (ok id))))
 
