@@ -14,3 +14,11 @@
 (define-map balances {owner: principal} {balance: uint})
 (define-map proposals {id: uint} {recipient: principal, amount: uint, votes: uint})
 (define-data-var proposal-count uint 0)
+
+;; Mint tokens (only admin)
+(define-public (mint (recipient principal) (amount uint))
+    (begin
+        (asserts! (is-eq tx-sender (var-get admin)) (err "Only admin can mint"))
+        (map-set balances {owner: recipient} {balance: amount})
+        (ok amount)))
+
