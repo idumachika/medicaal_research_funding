@@ -22,3 +22,12 @@
         (map-set balances {owner: recipient} {balance: amount})
         (ok amount)))
 
+;; Transfer tokens
+(define-public (transfer (amount uint) (to principal))
+    (let ((sender-balance (unwrap! (map-get? balances {owner: tx-sender}) {balance: 0})))
+        (begin
+            (asserts! (>= sender-balance amount) (err "Insufficient balance"))
+            (map-set balances {owner: tx-sender} {balance: (- sender-balance amount)})
+            (map-set balances {owner: to} {balance: (+ (unwrap! (map-get? balances {owner: to}) {balance: 0}) amount)})
+            (ok amount))))
+
